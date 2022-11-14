@@ -20,20 +20,10 @@ process.on("SIGINT", () => {
   console.log("Database connection closed");
 });
 
-const {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-  updateStatusContact,
-} = require("./models/contacts");
+const contacts = require("./models/contacts");
+const users = require("./models/users");
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-  updateStatusContact,
+  ...contacts,
+  ...users,
 };

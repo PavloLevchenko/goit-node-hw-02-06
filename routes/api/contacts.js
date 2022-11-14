@@ -1,9 +1,16 @@
 const express = require("express");
 const {
+  getData,
+  validateId,
+  checkParams,
+  checkQueries,
+} = require("./dataMiddleware");
+const {
+  contactQuerySchema,
   contactAddSchema,
   contactUpdateSchema,
   contactUpdateFavoriteSchema,
-} = require("../../routes/validation/schemas");
+} = require("../validation/contacts");
 
 const {
   listContacts,
@@ -11,85 +18,90 @@ const {
   removeContact,
   addContact,
   updateContact,
-  updateStatusContact,
 } = require("../../database");
-
-function status(code, message, data = null) {
-  return {
-    code,
-    message,
-    data,
-  };
-}
+const { auth } = require("./jwtMiddleware");
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  res.json(status(200, "Success", await listContacts()));
-});
+router.use(auth);
 
-router.get("/:contactId", async (req, res, next) => {
-  const { contactId } = req.params;
-  const contact = await getContactById(contactId);
-  if (!contact) {
-    res.statusCode = 404;
+router.get(
+  "/",
+  (_, res, next) => {
+    res.statusCode = 200;
+    res.statusMessage = "Success";
+    res.queryShema = contactQuerySchema;
+    res.dataFunc = listContacts;
     next();
-    return;
-  }
-  res.json(status(200, "Success", contact));
-});
+  },
+  checkQueries,
+  getData
+);
 
-router.post("/", async (req, res, next) => {
-  const { error, value } = contactAddSchema.validate(req.body);
-  if (error) {
-    res.json(status(400, error.message));
-    return;
-  }
-  const contact = await addContact(value);
-  res.json(status(200, "Contact added", contact));
-});
-
-router.delete("/:contactId", async (req, res, next) => {
-  const { contactId } = req.params;
-  const contact = await removeContact(contactId);
-  if (!contact) {
-    res.statusCode = 404;
+router.get(
+  "/:contactId",
+  (req, res, next) => {
+    res.statusCode = 200;
+    res.statusMessage = "Success";
+    res.dataFunc = getContactById;
     next();
-    return;
-  }
-  res.json(status(200, "Contact deleted", contact));
-});
+  },
+  validateId,
+  getData
+);
 
-router.put("/:contactId", async (req, res, next) => {
-  const { contactId } = req.params;
-  const { error, value } = contactUpdateSchema.validate(req.body);
-  if (error) {
-    res.json(status(400, "Missing fields"));
-    return;
-  }
-  const contact = await updateContact(contactId, value);
-  if (!contact) {
-    res.statusCode = 404;
+router.post(
+  "/",
+  (_, res, next) => {
+    res.statusCode = 200;
+    res.statusMessage = "Contact added";
+    res.shema = contactAddSchema;
+    res.dataFunc = addContact;
     next();
-    return;
-  }
-  res.json(status(200, "Contact updated", contact));
-});
+  },
+  validateId,
+  checkParams,
+  getData
+);
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
-  const { contactId } = req.params;
-  const { error, value } = contactUpdateFavoriteSchema.validate(req.body);
-  if (error) {
-    res.json(status(400, error.message));
-    return;
-  }
-  const contact = await updateStatusContact(contactId, value);
-  if (!contact) {
-    res.statusCode = 404;
+router.delete(
+  "/:contactId",
+  (_, res, next) => {
+    res.statusCode = 201;
+    res.statusMessage = "Contact deleted";
+    res.dataFunc = removeContact;
     next();
-    return;
-  }
-  res.json(status(200, "Contact updated", contact));
-});
+  },
+  validateId,
+  getData
+);
+
+router.put(
+  "/:contactId",
+  (_, res, next) => {
+    res.statusCode = 200;
+    res.statusMessage = "Contact updated";
+    res.shema = contactUpdateSchema;
+    res.dataFunc = updateContact;
+    next();
+  },
+  validateId,
+  checkParams,
+  getData
+);
+
+router.patch(
+  "/:contactId/favorite",
+  (_, res, next) => {
+    res.statusCode = 200;
+    res.statusMessage = "Contact favorite updated";
+    res.shema = contactUpdateFavoriteSchema;
+    res.dataFunc = updateContact;
+    next();
+  },
+  validateId,
+  checkParams,
+  getData
+);
 
 module.exports = router;
