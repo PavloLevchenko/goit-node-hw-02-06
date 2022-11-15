@@ -1,5 +1,11 @@
 const Joi = require("joi");
 
+const contactQuerySchema = Joi.object({
+  page: Joi.number(),
+  limit: Joi.number(),
+  favorite: Joi.bool(),
+});
+
 const contactAddSchema = Joi.object({
   name: Joi.string()
     .required()
@@ -10,6 +16,7 @@ const contactAddSchema = Joi.object({
   phone: Joi.string()
     .required()
     .error(new Error('Missing required "phone" field')),
+  favorite: Joi.bool(),
 }).required();
 
 const contactUpdateSchema = Joi.object({
@@ -17,7 +24,8 @@ const contactUpdateSchema = Joi.object({
   email: Joi.string(),
   phone: Joi.string(),
 })
-  .min(1)
+  .or("name", "email", "phone")
+  .error(new Error("Missing fields"))
   .required();
 
 const contactUpdateFavoriteSchema = Joi.object({
@@ -25,6 +33,7 @@ const contactUpdateFavoriteSchema = Joi.object({
 }).required();
 
 module.exports = {
+  contactQuerySchema,
   contactAddSchema,
   contactUpdateSchema,
   contactUpdateFavoriteSchema,

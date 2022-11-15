@@ -1,54 +1,40 @@
-const { model, Types } = require("mongoose");
+const { model } = require("mongoose");
 const { contacts } = require("../schemas/contact");
 
 const Contacts = model("contacts", contacts);
 
-function query(func, ...args) {
-  try {
-    const contact = func.bind(Contacts)(...args);
-    if (contact) {
-      return contact;
-    }
-    return null;
-  } catch (err) {
-    console.error(err);
+const listContacts = async ({ owner }, _, { page, limit = 20, favorite }) => {
+  if (page) {
+    const skip = (page - 1) * limit;
+    return await Contacts.find({ owner }).skip(skip).limit(limit);
   }
-}
-
-const listContacts = async () => {
-  return await query(Contacts.find);
+  if (favorite) {
+    return await Contacts.find({ owner, favorite });
+  }
+  if (page && favorite) {
+    const skip = (page - 1) * limit;
+    return await Contacts.find({ owner, favorite }).skip(skip).limit(limit);
+  }
+  return await Contacts.find({ owner });
 };
 
-const getContactById = async (contactId) => {
-  if (Types.ObjectId.isValid(contactId)) {
-    return await query(Contacts.findById, contactId);
-  }
+const getContactById = async (ids) => {
+  return await Contacts.findOne(ids);
 };
 
-const removeContact = async (contactId) => {
-  if (Types.ObjectId.isValid(contactId)) {
-    return await query(Contacts.findByIdAndDelete, contactId);
-  }
+const removeContact = async (ids) => {
+  return await Contacts.findOneAndDelete(ids);
 };
 
-const addContact = async (body) => {
-  return await query(Contacts.create, body);
+const addContact = async ({ owner }, body) => {
+  return await Contacts.create({ ...body, owner });
 };
 
-const updateContact = async (contactId, body) => {
-  if (Types.ObjectId.isValid(contactId)) {
-    return await query(Contacts.findByIdAndUpdate, contactId, body, {
-      new: true,
-    });
-  }
-};
-
-const updateStatusContact = async (contactId, body) => {
-  if (Types.ObjectId.isValid(contactId)) {
-    return await query(Contacts.findByIdAndUpdate, contactId, body, {
-      new: true,
-    });
-  }
+const updateContact = async (ids, body) => {
+  return await Contacts.findOneAndUpdate(ids, body, {
+    new: true,
+    runValidators: true,
+  });
 };
 
 module.exports = {
@@ -57,5 +43,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-  updateStatusContact,
 };
