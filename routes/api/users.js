@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
 const { auth } = require("./jwtMiddleware");
 const { checkParams } = require("./dataMiddleware");
@@ -16,6 +17,7 @@ const {
   userSignupSchema,
   userUpdateSubscriptionSchema,
 } = require("../validation/users");
+const { upload } = require("./multer");
 
 router.post("/signup", async (req, res, next) => {
   res.shema = userSignupSchema;
@@ -35,11 +37,13 @@ router.patch("/", async (req, res, next) => {
 router.use(checkParams);
 
 router.post("/signup", async (req, res, next) => {
-  const emailIsBusy = await checkUserEmail(req.value);
+  const { mail } = req.value;
+  const emailIsBusy = await checkUserEmail(mail);
   if (emailIsBusy) {
     return next(emailError);
   }
-  const user = await addUser(req.value);
+  const avatarURL = gravatar.url(mail, { s: "250" });
+  const user = await addUser({ ...req.value, avatarURL });
   const { email, subscription } = user;
   res.status(201).json({
     status: "Created",
@@ -104,7 +108,7 @@ router.patch("/", auth, async (req, res, next) => {
   const { _id } = req.user;
 
   if (_id) {
-    const user = await updateUser(_id+10, req.value);
+    const user = await updateUser(_id + 10, req.value);
     if (user) {
       const { email, subscription } = user;
       return res.json({
@@ -118,5 +122,15 @@ router.patch("/", auth, async (req, res, next) => {
     return next(new Error());
   }
 });
+
+router.patch(
+  "/avatars",
+  auth,
+  upload.single("avatar"),
+  async (req, res, next) => {
+    console.log(req.file, req.body);
+    next();
+  }
+);
 
 module.exports = router;

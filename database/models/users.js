@@ -7,7 +7,7 @@ const getUserById = async (UserId) => {
   return await Users.findById(UserId);
 };
 
-const checkUserEmail = async ({ email }) => {
+const checkUserEmail = async (email) => {
   return (await Users.findOne({ email })) != null;
 };
 
