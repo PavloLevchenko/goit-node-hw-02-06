@@ -6,9 +6,10 @@ const { auth } = require("./jwtMiddleware");
 const { checkParams } = require("./dataMiddleware");
 const { emailError, loginError } = require("./httpErrors");
 
-const secret = process.env.SECRET;
+const secret = process.env.JWT_SECRET;
 const {
   checkUserEmail,
+  getUserById,
   getUserByEmail,
   addUser,
   updateUser,
@@ -47,11 +48,7 @@ router.post("/signup", async (req, res, next) => {
   const user = await addUser({ ...req.value, avatarURL });
   const { email, subscription } = user;
   res.status(201).json({
-    status: "Created",
-    code: 201,
-    data: {
-      user: { email, subscription },
-    },
+    user: { email, subscription },
   });
 });
 
@@ -70,57 +67,46 @@ router.post("/login", async (req, res, next) => {
 
   const { email, subscription } = user;
   res.json({
-    status: "success",
-    code: 200,
-    data: {
-      token,
-      user: { email, subscription },
-    },
+    token,
+    user: { email, subscription },
   });
 });
 
 router.get("/logout", auth, async (req, res, next) => {
-  const { _id } = req.user;
+  const _id = req.user;
+
   if (_id) {
     await updateUser(_id, { token: null });
-    res.json({
-      status: "No Content",
-      code: 204,
-    });
+    res.status(204).json();
   }
+  return next(new Error());
 });
 
 router.get("/current", auth, async (req, res, next) => {
-  const user = req.user;
+  const _id = req.user;
+  const user = await getUserById(_id);
   if (user) {
     const { email, subscription } = user;
     res.json({
-      status: "success",
-      code: 200,
-      data: {
-        user: { email, subscription },
-      },
+      user: { email, subscription },
     });
   }
+  return next(new Error());
 });
 
 router.patch("/", auth, async (req, res, next) => {
-  const { _id } = req.user;
+  const _id = req.user;
 
   if (_id) {
     const user = await updateUser(_id, req.value);
     if (user) {
       const { email, subscription } = user;
       return res.json({
-        status: "Subscription updated",
-        code: 200,
-        data: {
-          user: { email, subscription },
-        },
+        user: { email, subscription },
       });
     }
-    return next(new Error());
   }
+  return next(new Error());
 });
 
 router.patch(
@@ -128,18 +114,17 @@ router.patch(
   auth,
   upload.single("avatar"),
   async (req, res, next) => {
-    const user = req.user;
+    const _id = req.user;
+    
     const path = req.file ? req.file.path : "";
-    if (user && path) {
-      const { _id, email } = user;
+    if (_id && path) {
+      const { email } = await getUserById(_id);
       const image = await resizeAndSave(path, email);
       const avatarURL =
         req.protocol + "://" + req.headers.host + req.path + "/" + image;
       if (await updateUser(_id, { avatarURL })) {
-        return res.status(200).json({
-          data: {
-            avatarURL,
-          },
+        return res.json({
+          avatarURL,
         });
       }
     }
