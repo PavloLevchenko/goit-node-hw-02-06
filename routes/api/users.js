@@ -17,7 +17,8 @@ const {
   userSignupSchema,
   userUpdateSubscriptionSchema,
 } = require("../validation/users");
-const { upload } = require("./multer");
+const upload = require("./path/multer");
+const resizeAndSave = require("./path/jimp");
 
 router.post("/signup", async (req, res, next) => {
   res.shema = userSignupSchema;
@@ -62,7 +63,6 @@ router.post("/login", async (req, res, next) => {
   }
   const payload = {
     id: user.id,
-    username: user.username,
   };
 
   const token = jwt.sign(payload, secret, { expiresIn: "10h" });
@@ -108,7 +108,7 @@ router.patch("/", auth, async (req, res, next) => {
   const { _id } = req.user;
 
   if (_id) {
-    const user = await updateUser(_id + 10, req.value);
+    const user = await updateUser(_id, req.value);
     if (user) {
       const { email, subscription } = user;
       return res.json({
@@ -128,8 +128,22 @@ router.patch(
   auth,
   upload.single("avatar"),
   async (req, res, next) => {
-    console.log(req.file, req.body);
-    next();
+    const user = req.user;
+    const path = req.file ? req.file.path : "";
+    if (user && path) {
+      const { _id, email } = user;
+      const image = await resizeAndSave(path, email);
+      const avatarURL =
+        req.protocol + "://" + req.headers.host + req.path + "/" + image;
+      if (await updateUser(_id, { avatarURL })) {
+        return res.status(200).json({
+          data: {
+            avatarURL,
+          },
+        });
+      }
+    }
+    return next(new Error());
   }
 );
 
