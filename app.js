@@ -1,11 +1,8 @@
-require("dotenv").config();
 const fs = require("node:fs");
 const path = require("node:path");
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
-
-require("./database");
 
 const usersRouter = require("./routes/api/users");
 const contactsRouter = require("./routes/api/contacts");
