@@ -27,7 +27,8 @@ const removeContact = async (ids) => {
 };
 
 const addContact = async ({ owner }, body) => {
-  return await Contacts.create({ ...body, owner });
+  const {id, name, email, phone} = await Contacts.create({ ...body, owner });
+  return {id, name, email, phone};
 };
 
 const updateContact = async (ids, body) => {

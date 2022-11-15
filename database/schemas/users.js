@@ -35,7 +35,6 @@ const users = new Schema(
   },
   {
     versionKey: false,
-    strictPopulate:true,
   }
 );
 

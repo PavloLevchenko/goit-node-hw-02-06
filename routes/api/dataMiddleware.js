@@ -21,7 +21,7 @@ const checkQueries = (req, res, next) => {
     return next(badRequestError(error.message));
   }
   next();
-}
+};
 
 const checkParams = (req, res, next) => {
   const { shema } = res;
@@ -37,19 +37,17 @@ const checkParams = (req, res, next) => {
 };
 
 const getData = async (req, res, next) => {
-  const { statusCode, statusMessage, dataFunc } = res;
+  const { statusCode = 200, dataFunc } = res;
 
   if (dataFunc) {
     const _id = req.params.contactId;
     const owner = req.user._id;
     const ids = { _id, owner };
-    
+
     const data = await dataFunc(ids, req.value, req.query).catch(next);
     if (data) {
-      return res.json({
-        code: statusCode,
-        message: statusMessage,
-        data,
+      return res.status(statusCode).json({
+        ...data,
       });
     }
   }
