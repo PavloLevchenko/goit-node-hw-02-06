@@ -28,8 +28,6 @@ router.use(auth);
 router.get(
   "/",
   (_, res, next) => {
-    res.statusCode = 200;
-    res.statusMessage = "Success";
     res.queryShema = contactQuerySchema;
     res.dataFunc = listContacts;
     next();
@@ -41,8 +39,6 @@ router.get(
 router.get(
   "/:contactId",
   (req, res, next) => {
-    res.statusCode = 200;
-    res.statusMessage = "Success";
     res.dataFunc = getContactById;
     next();
   },
@@ -53,8 +49,7 @@ router.get(
 router.post(
   "/",
   (_, res, next) => {
-    res.statusCode = 200;
-    res.statusMessage = "Contact added";
+    res.statusCode = 201;
     res.shema = contactAddSchema;
     res.dataFunc = addContact;
     next();
@@ -67,8 +62,6 @@ router.post(
 router.delete(
   "/:contactId",
   (_, res, next) => {
-    res.statusCode = 201;
-    res.statusMessage = "Contact deleted";
     res.dataFunc = removeContact;
     next();
   },
@@ -79,8 +72,6 @@ router.delete(
 router.put(
   "/:contactId",
   (_, res, next) => {
-    res.statusCode = 200;
-    res.statusMessage = "Contact updated";
     res.shema = contactUpdateSchema;
     res.dataFunc = updateContact;
     next();
@@ -93,8 +84,6 @@ router.put(
 router.patch(
   "/:contactId/favorite",
   (_, res, next) => {
-    res.statusCode = 200;
-    res.statusMessage = "Contact favorite updated";
     res.shema = contactUpdateFavoriteSchema;
     res.dataFunc = updateContact;
     next();

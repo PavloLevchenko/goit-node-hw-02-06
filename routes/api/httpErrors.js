@@ -1,16 +1,16 @@
-const httpErr = require("http-errors");
+const { BadRequest, NotFound, Unauthorized, Conflict } = require("http-errors");
 
-const emailError = httpErr(409, "Email in use");
+const emailError = Conflict("Email in use");
 
-const loginError = httpErr(401, "Email or password is wrong");
+const loginError = Unauthorized("Email or password is wrong");
 
-const notAutorizedError = httpErr(401, "Not authorized");
+const notAutorizedError = Unauthorized("Not authorized");
 
 const badRequestError = (message = "Bad Request") => {
-  return httpErr(400, message);
+  return BadRequest(message);
 };
 
-const notFoundError = httpErr(404, "Not found");
+const notFoundError = NotFound();
 
 module.exports = {
   emailError,

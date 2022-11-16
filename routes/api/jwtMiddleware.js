@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { notAutorizedError } = require("./httpErrors");
 const { getUserById } = require("../../database");
 
-const secret = process.env.SECRET;
+const secret = process.env.JWT_SECRET;
 
 const ExtractJWT = passportJWT.ExtractJwt;
 const Strategy = passportJWT.Strategy;
@@ -23,7 +23,8 @@ passport.use(
     if (!user || payload.iat !== tockenCreationTimestamp) {
       return done(notAutorizedError);
     }
-    return done(null, user);
+    const { _id } = user;
+    return done(null, _id);
   })
 );
 

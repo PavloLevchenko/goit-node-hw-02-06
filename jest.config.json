@@ -1,0 +1,5 @@
+{
+  "detectOpenHandles": true,
+  "maxWorkers": 1,
+  "testTimeout": 5000
+}
