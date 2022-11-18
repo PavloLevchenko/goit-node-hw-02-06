@@ -2,7 +2,7 @@ const express = require("express");
 const {
   getData,
   validateId,
-  checkParams,
+  checkBody,
   checkQueries,
 } = require("./dataMiddleware");
 const {
@@ -50,12 +50,12 @@ router.post(
   "/",
   (_, res, next) => {
     res.statusCode = 201;
-    res.shema = contactAddSchema;
+    res.bodyShema = contactAddSchema;
     res.dataFunc = addContact;
     next();
   },
   validateId,
-  checkParams,
+  checkBody,
   getData
 );
 
@@ -72,24 +72,24 @@ router.delete(
 router.put(
   "/:contactId",
   (_, res, next) => {
-    res.shema = contactUpdateSchema;
+    res.bodyShema = contactUpdateSchema;
     res.dataFunc = updateContact;
     next();
   },
   validateId,
-  checkParams,
+  checkBody,
   getData
 );
 
 router.patch(
   "/:contactId/favorite",
   (_, res, next) => {
-    res.shema = contactUpdateFavoriteSchema;
+    res.bodyShema = contactUpdateFavoriteSchema;
     res.dataFunc = updateContact;
     next();
   },
   validateId,
-  checkParams,
+  checkBody,
   getData
 );
 

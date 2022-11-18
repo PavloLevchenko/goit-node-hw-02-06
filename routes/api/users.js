@@ -1,42 +1,72 @@
 const express = require("express");
 const router = express.Router();
 const gravatar = require("gravatar");
+const { nanoid } = require("nanoid");
 const jwt = require("jsonwebtoken");
 const { auth } = require("./jwtMiddleware");
-const { checkParams } = require("./dataMiddleware");
-const { emailError, loginError } = require("./httpErrors");
+const { checkBody, checkParams } = require("./dataMiddleware");
 
 const secret = process.env.JWT_SECRET;
+
+const {
+  userNotFoundError,
+  emailError,
+  loginError,
+  emailVerificationError,
+  verificationError,
+} = require("./httpErrors");
+
 const {
   checkUserEmail,
+  isUserVerified,
   getUserById,
   getUserByEmail,
+  verifyUser,
   addUser,
   updateUser,
 } = require("../../database");
+
 const {
   userSignupSchema,
   userUpdateSubscriptionSchema,
+  userVerificationSchema,
+  emailVerificationSchema,
 } = require("../validation/users");
+
 const upload = require("./path/multer");
 const resizeAndSave = require("./path/jimp");
+const {
+  getVerificationUrl,
+  sendVerificationMail,
+} = require("./emailVerivication");
 
-router.post("/signup", async (req, res, next) => {
-  res.shema = userSignupSchema;
+router.post("/signup", async (_, res, next) => {
+  res.bodyShema = userSignupSchema;
   next();
 });
 
-router.post("/login", async (req, res, next) => {
-  res.shema = userSignupSchema;
+router.post("/login", async (_, res, next) => {
+  res.bodyShema = userSignupSchema;
   next();
 });
 
-router.patch("/", async (req, res, next) => {
-  res.shema = userUpdateSubscriptionSchema;
+router.patch("/", async (_, res, next) => {
+  res.bodyShema = userUpdateSubscriptionSchema;
+  next();
+});
+
+router.get("/verify/:verificationToken", async (_, res, next) => {
+  res.paramsShema = userVerificationSchema;
+  next();
+});
+
+router.post("/verify", async (_, res, next) => {
+  res.bodyShema = emailVerificationSchema;
   next();
 });
 
 router.use(checkParams);
+router.use(checkBody);
 
 router.post("/signup", async (req, res, next) => {
   const { mail } = req.value;
@@ -45,11 +75,18 @@ router.post("/signup", async (req, res, next) => {
     return next(emailError);
   }
   const avatarURL = gravatar.url(mail, { s: "250" });
-  const user = await addUser({ ...req.value, avatarURL });
+  const verificationToken = nanoid();
+  const user = await addUser({ ...req.value, avatarURL, verificationToken });
   const { email, subscription } = user;
-  res.status(201).json({
-    user: { email, subscription },
-  });
+  const verificationUrl = getVerificationUrl(req, verificationToken);
+  sendVerificationMail(email, verificationUrl)
+    .then(() => {
+      return res.status(201).json({
+        message: "Check email with subject 'Email verification from phonebook' and activate user account",
+        user: { email, subscription },
+      });
+    })
+    .catch(next);
 });
 
 router.post("/login", async (req, res, next) => {
@@ -58,6 +95,10 @@ router.post("/login", async (req, res, next) => {
   if (!user || !(await user.validPassword(password))) {
     return next(loginError);
   }
+  if (!user.verify) {
+    return next(emailVerificationError);
+  }
+
   const payload = {
     id: user.id,
   };
@@ -115,7 +156,7 @@ router.patch(
   upload.single("avatar"),
   async (req, res, next) => {
     const _id = req.user;
-    
+
     const path = req.file ? req.file.path : "";
     if (_id && path) {
       const { email } = await getUserById(_id);
@@ -131,5 +172,32 @@ router.patch(
     return next(new Error());
   }
 );
+
+router.get("/verify/:verificationToken", async (req, res, next) => {
+  const verificationToken = req.params.contactId;
+  const user = await verifyUser(verificationToken);
+  if (user) {
+    return res.json({
+      message: "Verification successful",
+    });
+  }
+  return next(userNotFoundError);
+});
+
+router.post("/verify", async (req, res, next) => {
+  const { email } = req.body;
+  const verificationToken = nanoid();
+  const verificationUrl = getVerificationUrl(req, verificationToken);
+  if (isUserVerified(email)) {
+    return next(verificationError);
+  }
+  sendVerificationMail(email, verificationUrl)
+    .then(() => {
+      return res.json({
+        message: "Verification email sent",
+      });
+    })
+    .catch(next);
+});
 
 module.exports = router;

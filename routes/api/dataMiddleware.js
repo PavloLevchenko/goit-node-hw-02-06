@@ -10,10 +10,9 @@ const validateId = (req, _, next) => {
   next();
 };
 
-const checkQueries = (req, res, next) => {
-  const { queryShema } = res;
-  if (queryShema) {
-    const { error, value } = queryShema.validate(req.query);
+const checkData = (shema, data, req, next) => {
+  if (shema) {
+    const { error, value } = shema.validate(data);
     if (!error) {
       req.query = value;
       return next();
@@ -23,17 +22,16 @@ const checkQueries = (req, res, next) => {
   next();
 };
 
+const checkQueries = (req, res, next) => {
+  checkData(res.queryShema, req.query, req, next);
+};
+
 const checkParams = (req, res, next) => {
-  const { shema } = res;
-  if (shema) {
-    const { error, value } = shema.validate(req.body);
-    if (!error) {
-      req.value = value;
-      return next();
-    }
-    return next(badRequestError(error.message));
-  }
-  next();
+  checkData(res.paramsShema, req.params, req, next);
+};
+
+const checkBody = (req, res, next) => {
+  checkData(res.bodyShema, req.body, req, next);
 };
 
 const getData = async (req, res, next) => {
@@ -57,6 +55,7 @@ const getData = async (req, res, next) => {
 module.exports = {
   getData,
   validateId,
+  checkBody,
   checkParams,
   checkQueries,
 };
