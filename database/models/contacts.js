@@ -19,7 +19,8 @@ const listContacts = async ({ owner }, _, { page, limit = 20, favorite }) => {
 };
 
 const getContactById = async (ids) => {
-  return await Contacts.findOne(ids);
+  const { id, name, email, phone, favorite } = await Contacts.findOne(ids);
+  return { id, name, email, phone, favorite };
 };
 
 const removeContact = async (ids) => {
@@ -27,8 +28,8 @@ const removeContact = async (ids) => {
 };
 
 const addContact = async ({ owner }, body) => {
-  const {id, name, email, phone} = await Contacts.create({ ...body, owner });
-  return {id, name, email, phone};
+  const { id, name, email, phone, favorite } = await Contacts.create({ ...body, owner });
+  return { id, name, email, phone, favorite };
 };
 
 const updateContact = async (ids, body) => {

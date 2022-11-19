@@ -10,28 +10,23 @@ const validateId = (req, _, next) => {
   next();
 };
 
-const checkData = (shema, data, req, next) => {
+const checkShema = (data, res, req, next) => {
+  const shema = res[data + "Shema"];
   if (shema) {
-    const { error, value } = shema.validate(data);
+    const { error, value } = shema.validate(req[data]);
     if (!error) {
-      req.query = value;
+      req[data] = value;
       return next();
     }
     return next(badRequestError(error.message));
   }
+};
+
+const checkData = (req, res, next) => {
+  checkShema("query", res, req, next);
+  checkShema("params", res, req, next);
+  checkShema("body", res, req, next);
   next();
-};
-
-const checkQueries = (req, res, next) => {
-  checkData(res.queryShema, req.query, req, next);
-};
-
-const checkParams = (req, res, next) => {
-  checkData(res.paramsShema, req.params, req, next);
-};
-
-const checkBody = (req, res, next) => {
-  checkData(res.bodyShema, req.body, req, next);
 };
 
 const getData = async (req, res, next) => {
@@ -42,7 +37,7 @@ const getData = async (req, res, next) => {
     const owner = req.user._id;
     const ids = { _id, owner };
 
-    const data = await dataFunc(ids, req.value, req.query).catch(next);
+    const data = await dataFunc(ids, req.body, req.query).catch(next);
     if (data) {
       return res.status(statusCode).json({
         ...data,
@@ -55,7 +50,5 @@ const getData = async (req, res, next) => {
 module.exports = {
   getData,
   validateId,
-  checkBody,
-  checkParams,
-  checkQueries,
+  checkData,
 };

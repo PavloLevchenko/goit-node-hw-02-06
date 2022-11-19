@@ -2,8 +2,7 @@ const express = require("express");
 const {
   getData,
   validateId,
-  checkBody,
-  checkQueries,
+  checkData,
 } = require("./dataMiddleware");
 const {
   contactQuerySchema,
@@ -32,7 +31,7 @@ router.get(
     res.dataFunc = listContacts;
     next();
   },
-  checkQueries,
+  checkData,
   getData
 );
 
@@ -55,7 +54,7 @@ router.post(
     next();
   },
   validateId,
-  checkBody,
+  checkData,
   getData
 );
 
@@ -77,7 +76,7 @@ router.put(
     next();
   },
   validateId,
-  checkBody,
+  checkData,
   getData
 );
 
@@ -89,7 +88,7 @@ router.patch(
     next();
   },
   validateId,
-  checkBody,
+  checkData,
   getData
 );
 

@@ -4,7 +4,7 @@ const gravatar = require("gravatar");
 const { nanoid } = require("nanoid");
 const jwt = require("jsonwebtoken");
 const { auth } = require("./jwtMiddleware");
-const { checkBody, checkParams } = require("./dataMiddleware");
+const { checkData } = require("./dataMiddleware");
 
 const secret = process.env.JWT_SECRET;
 
@@ -21,6 +21,7 @@ const {
   isUserVerified,
   getUserById,
   getUserByEmail,
+  getVerificationToken,
   verifyUser,
   addUser,
   updateUser,
@@ -65,33 +66,31 @@ router.post("/verify", async (_, res, next) => {
   next();
 });
 
-router.use(checkParams);
-router.use(checkBody);
-
-router.post("/signup", async (req, res, next) => {
-  const { mail } = req.value;
-  const emailIsBusy = await checkUserEmail(mail);
+router.post("/signup", checkData, async (req, res, next) => {
+  const { email: userEmail } = req.body;
+  const emailIsBusy = await checkUserEmail(userEmail);
   if (emailIsBusy) {
     return next(emailError);
   }
-  const avatarURL = gravatar.url(mail, { s: "250" });
+  const avatarURL = gravatar.url(userEmail, { s: "250" });
   const verificationToken = nanoid();
-  const user = await addUser({ ...req.value, avatarURL, verificationToken });
+  const user = await addUser({ ...req.body, avatarURL, verificationToken });
   const { email, subscription } = user;
   const verificationUrl = getVerificationUrl(req, verificationToken);
   sendVerificationMail(email, verificationUrl)
     .then(() => {
       return res.status(201).json({
-        message: "Check email with subject 'Email verification from phonebook' and activate user account",
+        message:
+          "Check email with subject 'Email verification from phonebook' and activate user account",
         user: { email, subscription },
       });
     })
     .catch(next);
 });
 
-router.post("/login", async (req, res, next) => {
-  let user = await getUserByEmail(req.value);
-  const { password } = req.value;
+router.post("/login", checkData, async (req, res, next) => {
+  const { email: userEmail, password } = req.body;
+  let user = await getUserByEmail(userEmail);
   if (!user || !(await user.validPassword(password))) {
     return next(loginError);
   }
@@ -135,11 +134,11 @@ router.get("/current", auth, async (req, res, next) => {
   return next(new Error());
 });
 
-router.patch("/", auth, async (req, res, next) => {
+router.patch("/", auth, checkData, async (req, res, next) => {
   const _id = req.user;
 
   if (_id) {
-    const user = await updateUser(_id, req.value);
+    const user = await updateUser(_id, req.body);
     if (user) {
       const { email, subscription } = user;
       return res.json({
@@ -173,8 +172,8 @@ router.patch(
   }
 );
 
-router.get("/verify/:verificationToken", async (req, res, next) => {
-  const verificationToken = req.params.contactId;
+router.get("/verify/:verificationToken", checkData, async (req, res, next) => {
+  const verificationToken = req.params.verificationToken;
   const user = await verifyUser(verificationToken);
   if (user) {
     return res.json({
@@ -184,13 +183,13 @@ router.get("/verify/:verificationToken", async (req, res, next) => {
   return next(userNotFoundError);
 });
 
-router.post("/verify", async (req, res, next) => {
+router.post("/verify", checkData, async (req, res, next) => {
   const { email } = req.body;
-  const verificationToken = nanoid();
-  const verificationUrl = getVerificationUrl(req, verificationToken);
   if (isUserVerified(email)) {
     return next(verificationError);
   }
+  const verificationToken = await getVerificationToken(email);
+  const verificationUrl = getVerificationUrl(req, verificationToken);
   sendVerificationMail(email, verificationUrl)
     .then(() => {
       return res.json({

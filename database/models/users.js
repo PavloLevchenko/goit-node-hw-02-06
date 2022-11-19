@@ -11,11 +11,15 @@ const checkUserEmail = async (email) => {
   return (await Users.findOne({ email })) != null;
 };
 
+const getVerificationToken = async (email) => {
+  return (await Users.findOne({ email })).verificationToken;
+};
+
 const isUserVerified = async (email) => {
   return (await Users.findOne({ email })).verify;
 };
 
-const getUserByEmail = async ({ email }) => {
+const getUserByEmail = async (email) => {
   return await Users.findOne({ email });
 };
 
@@ -40,6 +44,7 @@ module.exports = {
   checkUserEmail,
   isUserVerified,
   getUserByEmail,
+  getVerificationToken,
   verifyUser,
   addUser,
   updateUser,
