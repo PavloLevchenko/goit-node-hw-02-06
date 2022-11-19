@@ -117,7 +117,7 @@ router.get("/logout", auth, async (req, res, next) => {
 
   if (_id) {
     await updateUser(_id, { token: null });
-    res.status(204).json();
+    return res.status(204).json();
   }
   return next(new Error());
 });
@@ -127,7 +127,7 @@ router.get("/current", auth, async (req, res, next) => {
   const user = await getUserById(_id);
   if (user) {
     const { email, subscription } = user;
-    res.json({
+    return res.json({
       user: { email, subscription },
     });
   }

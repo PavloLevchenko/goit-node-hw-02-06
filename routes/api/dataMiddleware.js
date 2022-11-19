@@ -14,11 +14,10 @@ const checkShema = (data, res, req, next) => {
   const shema = res[data + "Shema"];
   if (shema) {
     const { error, value } = shema.validate(req[data]);
-    if (!error) {
-      req[data] = value;
-      return next();
+    if (error) {
+      return next(badRequestError(error.message)); 
     }
-    return next(badRequestError(error.message));
+    req[data] = value;
   }
 };
 
@@ -38,12 +37,14 @@ const getData = async (req, res, next) => {
     const ids = { _id, owner };
 
     const data = await dataFunc(ids, req.body, req.query).catch(next);
+
     if (data) {
       return res.status(statusCode).json({
         ...data,
       });
     }
   }
+
   next(notFoundError);
 };
 
