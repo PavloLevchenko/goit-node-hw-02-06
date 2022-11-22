@@ -1,31 +1,21 @@
-## GoIT Node.js Course Template Homework
+# goit-node-homework
 
-Виконайте форк цього репозиторію для виконання домашніх завдань (2-6)
-Форк створить репозиторій на вашому http://github.com
+It is project API for Phonebook related on NodeJS and express Framework.  
 
-Додайте ментора до колаборації
+## FAQ
 
-Для кожної домашньої роботи створюйте свою гілку.
+#### Before start
 
-- hw02
-- hw03
-- hw04
-- hw05
-- hw06
+Clone or fork repository. Pull repository on your machine. Install node packages on command npm i. Then you must create file .env in project root. Fill this file as described in .env.example. 
 
-Кожна нова гілка для др повинна робитися з master
+#### How to start 
 
-Після того, як ви закінчили виконувати домашнє завдання у своїй гілці, необхідно зробити пулл-реквест (PR). Потім додати ментора для рев'ю коду. Тільки після того, як ментор заапрувить PR, ви можете виконати мердж гілки з домашнім завданням у майстер.
+Run script from file package.json in project root. For production npm start and npm start:dev for development.
 
-Уважно читайте коментарі ментора. Виправте зауваження та зробіть коміт у гілці з домашнім завданням. Зміни підтягнуться у PR автоматично після того, як ви відправите коміт з виправленнями на github
-Після виправлення знову додайте ментора на рев'ю коду.
+#### How I can learn API
 
-- При здачі домашньої роботи є посилання на PR
-- JS-код чистий та зрозумілий, для форматування використовується Prettier
+Docs available at end point /api-docs. You can test API with Swagger, which already included to build.
 
-### Команди:
+#### If I prefer Postman
 
-- `npm start` &mdash; старт сервера в режимі production
-- `npm run start:dev` &mdash; старт сервера в режимі розробки (development)
-- `npm run lint` &mdash; запустити виконання перевірки коду з eslint, необхідно виконувати перед кожним PR та виправляти всі помилки лінтера
-- `npm lint:fix` &mdash; та ж перевірка лінтера, але з автоматичними виправленнями простих помилок
+Download spec file on end point /api-docs.json and import in Postman. 
