@@ -6,11 +6,11 @@ It is project API for Phonebook related on NodeJS and express Framework.
 
 #### Before start
 
-Clone or fork repository. Pull repository on your machine. Install node packages on command npm i. Then you must create file .env in project root. Fill this file as described in .env.example. 
+Clone or fork repository. Pull repository on your machine. Install node packages on command npm i. Then you must create .env file in project root. Fill this file as described in .env.example. 
 
 #### How to start 
 
-Run script from file package.json in project root. For production npm start and npm start:dev for development.
+Run script from file package.json in project root. For production npm start and npm run start:dev for development.
 
 #### How I can learn API
 
