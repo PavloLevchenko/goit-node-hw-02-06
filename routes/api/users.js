@@ -66,6 +66,35 @@ router.post("/verify", async (_, res, next) => {
   next();
 });
 
+/**
+ * @openapi
+ *
+ * /api/users/signup:
+ *   post:
+ *     tags:
+ *        - Users
+ *     description: Add new user
+ *     requestBody:
+ *      required: true
+ *      content:
+ *       application/json:
+ *        schema:
+ *            $ref: '#/components/requestBodies/userSignup'
+ *     responses:
+ *        201:
+ *          description: Successful response, send email and subscription
+ *          content:
+ *             application/json:
+ *               schema:
+ *                $ref: '#/components/shemes/userSignupApiResponse'
+ *        400:
+ *          description: Missing required fields or invalid data format.
+ *           The mail must be in the format user@gmail.com, the password must contain minimum eight characters, 
+ *           at least one letter and one number.
+ *        409:
+ *          description: Email in use, try another
+ */
+
 router.post("/signup", checkData, async (req, res, next) => {
   const { email: userEmail } = req.body;
   const emailIsBusy = await checkUserEmail(userEmail);
@@ -87,6 +116,33 @@ router.post("/signup", checkData, async (req, res, next) => {
     })
     .catch(next);
 });
+
+/**
+ * @openapi
+ *
+ * /api/users/login:
+ *   post:
+ *     tags:
+ *        - Users
+ *     description: User authentication and authorisation tocken delivery
+ *     requestBody:
+ *      required: true
+ *      content:
+ *       application/json:
+ *        schema:
+ *            $ref: '#/components/requestBodies/userSignup'
+ *     responses:
+ *        200:
+ *          description: Successful response, send access token and user object
+ *          content:
+ *             application/json:
+ *               schema:
+ *                $ref: '#/components/shemes/userLoginApiResponse'
+ *        400:
+ *          description: Missing required fields or email is not verify
+ *        401:
+ *          description: Email or password is wrong
+ */
 
 router.post("/login", checkData, async (req, res, next) => {
   const { email: userEmail, password } = req.body;
@@ -112,6 +168,21 @@ router.post("/login", checkData, async (req, res, next) => {
   });
 });
 
+/**
+ * @openapi
+ *
+ * /api/users/logout:
+ *   get:
+ *     tags:
+ *        - Users
+ *     description: Log out, authorisation tocken disabling
+ *     responses:
+ *        204:
+ *          description: Successful response
+ *        401:
+ *          description: Missing header with authorization token
+ */
+
 router.get("/logout", auth, async (req, res, next) => {
   const _id = req.user;
 
@@ -121,6 +192,25 @@ router.get("/logout", auth, async (req, res, next) => {
   }
   return next(new Error());
 });
+
+/**
+ * @openapi
+ *
+ * /api/users/current:
+ *   get:
+ *     tags:
+ *        - Users
+ *     description: Get current user data
+ *     responses:
+ *        200:
+ *          description: Successful response
+ *          content:
+ *             application/json:
+ *               schema:
+ *                $ref: '#/components/shemes/userSignupApiResponse'
+ *        401:
+ *          description: Missing header with authorization token
+ */
 
 router.get("/current", auth, async (req, res, next) => {
   const _id = req.user;
@@ -133,6 +223,33 @@ router.get("/current", auth, async (req, res, next) => {
   }
   return next(new Error());
 });
+
+/**
+ * @openapi
+ *
+ * /api/users:
+ *   patch:
+ *     tags:
+ *        - Users
+ *     description: Update user subscription
+ *     requestBody:
+ *      required: true
+ *      content:
+ *       application/json:
+ *        schema:
+ *            $ref: '#/components/requestBodies/userUpdateSubscription'
+ *     responses:
+ *        200:
+ *          description: Successful response, user data with new subscription
+ *          content:
+ *             application/json:
+ *               schema:
+ *                $ref: '#/components/shemes/userSignupApiResponse'
+ *        400:
+ *          description: Subscription must be one of the following values "starter", "pro", "business"
+ *        401:
+ *          description: Missing header with authorization token
+ */
 
 router.patch("/", auth, checkData, async (req, res, next) => {
   const _id = req.user;
@@ -148,6 +265,33 @@ router.patch("/", auth, checkData, async (req, res, next) => {
   }
   return next(new Error());
 });
+
+/**
+ * @openapi
+ *
+ * /api/users/avatars:
+ *   patch:
+ *     tags:
+ *        - Users
+ *     description: Update user avatar
+ *     requestBody:
+ *      required: true
+ *      content:
+ *       multipart/form-data:
+ *        schema:
+ *            $ref: '#/components/requestBodies/avatarUpload'
+ *     responses:
+ *        200:
+ *          description: Successful response
+ *          content:
+ *             application/json:
+ *               schema:
+ *                $ref: '#/components/shemes/changeAvatarApiResponse'
+ *        400:
+ *          description: Avatar file is missing or in wrong format or bigger then 10 mb
+ *        401:
+ *          description: Missing header with authorization token
+ */
 
 router.patch(
   "/avatars",
@@ -172,6 +316,25 @@ router.patch(
   }
 );
 
+/**
+ * @openapi
+ *
+ * /api/users/verify/{verificationToken}:
+ *   get:
+ *     tags:
+ *        - Users
+ *     description: Verificate user email
+ *     parameters:
+ *      - $ref: '#/components/parameters/verificationToken'
+ *     responses:
+ *        200:
+ *          description: Verification successful
+ *        400:
+ *          description: Verification token is mising
+ *        404:
+ *          description: User for verification Not Found
+ */
+
 router.get("/verify/:verificationToken", checkData, async (req, res, next) => {
   const verificationToken = req.params.verificationToken;
   const user = await verifyUser(verificationToken);
@@ -182,6 +345,27 @@ router.get("/verify/:verificationToken", checkData, async (req, res, next) => {
   }
   return next(userNotFoundError);
 });
+
+/**
+ * @openapi
+ *
+ * /api/users/verify:
+ *   post:
+ *     tags:
+ *        - Users
+ *     description: Resending verification email
+ *     requestBody:
+ *      required: true
+ *      content:
+ *       application/json:
+ *        schema:
+ *            $ref: '#/components/requestBodies/emailVerification'
+ *     responses:
+ *        200:
+ *          description: Successful response, Verification email sent
+ *        400:
+ *          description: Verification has already been passed or missing required field email
+ */
 
 router.post("/verify", checkData, async (req, res, next) => {
   const { email } = req.body;

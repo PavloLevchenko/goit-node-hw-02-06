@@ -27,7 +27,7 @@ const userSignupSchema = Joi.object({
         "The password must contain minimum eight characters, at least one letter and one number"
       )
     ),
-}).required();
+}).required().meta({ schemaOverride: Joi.object({ email: Joi.string(), password: Joi.string() })});
 
 module.exports = {
   userSignupSchema,

@@ -40,6 +40,7 @@ const updateUser = async (UserId, body) => {
 };
 
 module.exports = {
+  Users,
   getUserById,
   checkUserEmail,
   isUserVerified,
