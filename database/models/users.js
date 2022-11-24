@@ -11,8 +11,20 @@ const checkUserEmail = async (email) => {
   return (await Users.findOne({ email })) != null;
 };
 
-const getUserByEmail = async ({ email }) => {
+const getVerificationToken = async (email) => {
+  return (await Users.findOne({ email })).verificationToken;
+};
+
+const isUserVerified = async (email) => {
+  return (await Users.findOne({ email })).verify;
+};
+
+const getUserByEmail = async (email) => {
   return await Users.findOne({ email });
+};
+
+const verifyUser = async (verificationToken) => {
+  return await Users.findOneAndUpdate({ verificationToken }, { verificationToken: null, verify: true });
 };
 
 const addUser = async (body) => {
@@ -28,9 +40,13 @@ const updateUser = async (UserId, body) => {
 };
 
 module.exports = {
+  Users,
   getUserById,
   checkUserEmail,
+  isUserVerified,
   getUserByEmail,
+  getVerificationToken,
+  verifyUser,
   addUser,
   updateUser,
 };

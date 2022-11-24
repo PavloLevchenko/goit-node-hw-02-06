@@ -11,6 +11,9 @@ const badRequestError = (message = "Bad Request") => {
 };
 
 const notFoundError = NotFound();
+const userNotFoundError = NotFound("User not found");
+const emailVerificationError = Unauthorized("Email verification required");
+const verificationError = BadRequest("Verification has already been passed");
 
 module.exports = {
   emailError,
@@ -18,4 +21,7 @@ module.exports = {
   notAutorizedError,
   badRequestError,
   notFoundError,
+  userNotFoundError,
+  emailVerificationError,
+  verificationError,
 };

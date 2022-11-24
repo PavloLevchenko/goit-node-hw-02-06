@@ -16,7 +16,7 @@ const contactAddSchema = Joi.object({
   phone: Joi.string()
     .required()
     .error(new Error('Missing required "phone" field')),
-  favorite: Joi.bool(),
+  favorite: Joi.bool().default(false),
 }).required();
 
 const contactUpdateSchema = Joi.object({
